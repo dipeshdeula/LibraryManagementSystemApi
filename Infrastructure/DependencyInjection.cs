@@ -1,9 +1,14 @@
-﻿using Infrastructure.Utilities;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
-
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Infrastructure.Utilities;
+using Domain.Options;
+using Microsoft.Extensions.Options;
+using Domain.Interfaces;
+using Infrastructure.Repositories;
+using Infrastructure.Services;
 
 namespace Infrastructure
 {
@@ -11,6 +16,12 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructureDI(this IServiceCollection services, IConfiguration configuration)
         {
+            //Register the DatabaseHelper
+            //services.AddSingleton<DatabaseHelper>();
+
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IUserRepository, UserRepository>();
+
             services.AddScoped<JwtTokenHelper>();
 
             //configure JWT authentication middleware
@@ -28,7 +39,7 @@ namespace Infrastructure
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
-                   // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
             });
 
