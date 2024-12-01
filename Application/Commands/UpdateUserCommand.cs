@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -9,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace Application.Commands
 {
-    public class CreateUserCommand : IRequest<UserEntity>
+    public class UpdateUserCommand : IRequest<int>
     {
-        public CreateUserCommand(string username, string password, string email, string userProfile, string fullName, string phone, string role, bool loginStatus, IFormFile userImage)
+        public UpdateUserCommand(int id,string username, string password, string email, string userProfile, string fullName, string phone, string role, bool loginStatus, IFormFile userImage)
         {
+            UserId = id;
             UserName = username;
             Password = password;
             Email = email;
@@ -22,8 +22,9 @@ namespace Application.Commands
             Role = role;
             LoginStatus = loginStatus;
             UserImage = userImage;
-            
+
         }
+        public int UserId { get; set; }
 
         public string UserName { get; set; } = null!;
         public string Password { get; set; } = null!;
@@ -36,9 +37,6 @@ namespace Application.Commands
 
         public bool LoginStatus { get; set; } = false;
         public IFormFile UserImage { get; set; }
-
-
-
 
     }
 }

@@ -18,9 +18,9 @@ namespace Application.DTOs
         public string FullName { get; set; } = null!;
         public string Phone { get; set; } = null!;
         public string Role { get; set; } = null!;
-        public IFormFile UserImage { get; set; } = null!;
+        public IFormFile UserImage { get; set; } 
 
-      //  public bool LoginStatus { get; set; } = false;
+      public bool LoginStatus { get; set; } = false;
 
     }
 }
