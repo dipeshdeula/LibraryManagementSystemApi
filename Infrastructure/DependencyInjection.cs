@@ -20,7 +20,10 @@ namespace Infrastructure
             //services.AddSingleton<DatabaseHelper>();
 
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IAuthorService, AuthorService>();
+
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IAuthorRepository, AuthorRepository>();
 
             services.AddScoped<JwtTokenHelper>();
 

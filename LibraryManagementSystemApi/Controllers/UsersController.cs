@@ -113,6 +113,13 @@ namespace LibraryManagementSystemApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the user.");
             }
         }
+
+        [HttpDelete("{id}")]
+
+        public async Task<int> DeleteUser(int id)
+        {
+            return await _mediator.Send(new DeleteUserCommand { Id = id });
+        }
     }
 
 }
