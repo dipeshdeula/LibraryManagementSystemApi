@@ -3,115 +3,115 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-   public class BookRepository : IBookRepository
+    public class ReviewRepository : IReviewRepository
     {
         private readonly IConfiguration configuration;
         private readonly string _connectionString;
 
-        public BookRepository(IConfiguration configuration)
+        public ReviewRepository(IConfiguration configuration)
         {
             this.configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task<IEnumerable<BooksEntity>> GetAllBooksAsync()
+        public async Task<IEnumerable<ReviewsEntity>> GetAllReviewAsync()
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "SE");
 
-                return await connection.QueryAsync<BooksEntity>(
-                    "[SP_Books]",
+                return await connection.QueryAsync<ReviewsEntity>(
+                    "[SP_Review]",
                     parameters,
                     commandType: System.Data.CommandType.StoredProcedure);
+
             }
         }
 
-        public async Task<BooksEntity> GetBooksByIdAsync(int id)
+        public async Task<ReviewsEntity> GetReviewByUserId(int id)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "SE");
-                parameters.Add("@BookId", id);
+                parameters.Add("@ReviewId", id);
 
-                return await connection.QueryFirstOrDefaultAsync<BooksEntity>(
-                    "[SP_Books]",
+                return await connection.QueryFirstOrDefaultAsync<ReviewsEntity>(
+                    "[SP_Review]",
                     parameters,
-                    commandType: System.Data.CommandType.StoredProcedure);
+                    commandType: System.Data.CommandType.StoredProcedure
+                    );
             }
         }
 
-        public async Task<string> AddBooksAsync(BooksEntity books)
+        public async Task<string> AddReviewAsync(ReviewsEntity review)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "I");
-                parameters.Add("@BookId", books.BookId);
-                parameters.Add("@Title", books.Title);
-                parameters.Add("@AuthorId", books.AuthorId);
-                parameters.Add("@ISBN", books.ISBN);
-                parameters.Add("@Quantity", books.Quantity);
-                parameters.Add("@Genre", books.Genre);
-                parameters.Add("@PublishedDate", books.PublishDate.ToString());
-                parameters.Add("@AvailabilityStatus", books.AvailabilityStatus);
+                parameters.Add("@ReviewId", review.ReviewId);
+                parameters.Add("@UserId", review.UserId);
+                parameters.Add("@BookId", review.BookId);
+                parameters.Add("@Rating", review.Rating);
+                parameters.Add("@ReviewDate", review.ReviewDate.ToDateTime(TimeOnly.MinValue));
+                parameters.Add("Comments", review.Comments);
+              
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                    "[SP_Books]",
+                    "[SP_Review]",
                     parameters,
                     commandType: System.Data.CommandType.StoredProcedure);
 
+
                 return result?.Msg ?? "Operation failed";
+
             }
         }
 
-        public async Task<string> UpdateBooksAsync(BooksEntity books)
+        public async Task<string> UpdateReviewAsync(ReviewsEntity review)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "U");
-                parameters.Add("@BookId", books.BookId);
-                parameters.Add("@Title", books.Title);
-                parameters.Add("@AuthorId", books.AuthorId);
-                parameters.Add("@Genre", books.Genre);
-                parameters.Add("@PublishDate", books.PublishDate);
-                parameters.Add("@AvailabilityStatus", books.AvailabilityStatus);
+                parameters.Add("@ReviewId", review.ReviewId);
+                parameters.Add("@UserId", review.UserId);
+                parameters.Add("@BookId", review.BookId);
+                parameters.Add("@Rating", review.Rating);
+                parameters.Add("Comments", review.Comments);
+                parameters.Add("@ReviewDate", review.ReviewDate.ToDateTime(TimeOnly.MinValue));
+
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
-                    "[SP_Books]",
+                    "[SP_Review]",
                     parameters,
                     commandType: System.Data.CommandType.StoredProcedure);
-
                 return result?.Msg ?? "Operation failed";
+
             }
         }
 
-        public async Task<string> DeleteBooksAsync(int id)
+        public async Task<string> DeleteReviewAsync(int id)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "D");
-                parameters.Add("@BookId", id);
+                parameters.Add("@ReviewId", id);
 
-               var result = await connection.QueryFirstOrDefaultAsync(
-                    "[SP_Books]",
+                var result = await connection.QueryFirstOrDefaultAsync(
+                    "[SP_Review]",
                     parameters,
-                    commandType: System.Data.CommandType.StoredProcedure);
+                    commandType:System.Data.CommandType.StoredProcedure);
 
                 return result?.Msg ?? "Operation failed";
             }
         }
+
     }
 }

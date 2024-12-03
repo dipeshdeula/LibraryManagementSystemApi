@@ -48,12 +48,12 @@ namespace LibraryManagementSystemApi.Controllers
                 //convert DateOnlyDto to DateOnly
                 // var PublishDate = new DateOnly(books.PublishDate.Year, books.PublishDate.Month, books.PublishDate.Day);
 
-                var publishDate = books.PublishDate.ToDateOnly();
+                //var publishDate = books.PublishDate;
                 
                
 
-                var createdBooks = await _mediator.Send(new CreateBookCommand(
-                    books.Title, books.AuthorId, books.ISBN, books.Genre, books.Quantity, books.PublishDate.ToDateOnly(), books.AvailabilityStatus));
+                var createdBooks = await _mediator.Send<BooksEntity>(new CreateBookCommand(
+                    books.Title, books.AuthorId, books.ISBN, books.Genre, books.Quantity, DateOnly.FromDateTime(DateTime.Today), books.AvailabilityStatus));
 
                 return Ok(
                     new
@@ -64,7 +64,8 @@ namespace LibraryManagementSystemApi.Controllers
                         createdBooks.ISBN,
                         createdBooks.Genre,
                         createdBooks.Quantity,
-                        PublishDate = createdBooks.PublishDate.ToString(),
+                       // PublishDate = DateOnly.FromDateTime(DateTime.Today),
+                       createdBooks.PublishDate,
                         createdBooks.AvailabilityStatus
 
 
@@ -76,6 +77,49 @@ namespace LibraryManagementSystemApi.Controllers
                 _logger.LogError(ex, "An error occured while creating the book");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occured whilw creating the books");
             }
+        }
+
+      /*  [HttpPut("{id}")]
+
+        public async Task<IActionResult> UpdateBook(int id, [FromForm] BookDtos books)
+        {
+            if (id != books.BookId)
+            {
+                return BadRequest("Book Id mismatch");
+            }
+
+            try
+            {
+                var bookReturn = await _mediator.Send(new UpdateBookCommand(
+                    id,
+                    books.Title,
+                    books.AuthorId,
+                    books.ISBN,
+                    books.Genre,
+                    books.Quantity,
+                   // DateOnly.FromDateTime(DateTime.Today),
+                    books.AvailabilityStatus
+
+                    ));
+
+                return Ok(bookReturn);
+
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while updating the book");
+            }
+        }
+
+*/
+
+        [HttpDelete("{id}")]
+        public async Task<int> DeleteBook(int id)
+        { 
+            return await _mediator.Send(new DeleteBookCommand { Id = id});
+
+        
         }
     }
 }

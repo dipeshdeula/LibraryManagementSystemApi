@@ -12,7 +12,12 @@ namespace Domain.Entities
         public int UserId { get; set; }
         public int BookId { get; set; }
         public int Rating { get; set; }
-        public string Comments { get; set; }
+        public string Comments { get; set; } = string.Empty;
         public DateOnly ReviewDate { get; set; }
+
+        //Helper property to get DateOnly
+        //public DateOnly ReviewDateOnly => DateOnly.FromDateTime(ReviewDate);
+
+
     }
 }

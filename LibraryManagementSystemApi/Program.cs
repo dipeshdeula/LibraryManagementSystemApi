@@ -1,4 +1,6 @@
 
+using Infrastructure.Utilities;
+
 namespace LibraryManagementSystemApi
 {
     public class Program
@@ -18,6 +20,13 @@ namespace LibraryManagementSystemApi
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
             builder.Services.AddLMSDI(builder.Configuration);
+
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+            });
+
 
             //Add CORS services and configure policies
             builder.Services.AddCors(opt =>

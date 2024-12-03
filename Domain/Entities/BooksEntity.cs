@@ -14,7 +14,7 @@ namespace Domain.Entities
         public string Genre { get; set; } = string.Empty;
         public string ISBN { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public DateOnly PublishDate { get; set; }
+        public DateOnly PublishDate { get; set; } 
         public string AvailabilityStatus { get; set; } = string.Empty;
     }
 }
