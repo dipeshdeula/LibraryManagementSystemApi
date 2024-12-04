@@ -44,16 +44,25 @@ namespace LibraryManagementSystemApi.Controllers
                 {
                     return BadRequest("AuthorId is Required");
                 }
+                //Validate and normalize the date format
+                if (!DateTime.TryParse(books.PublishedDate, out DateTime parseDate))
+                {
+                    return BadRequest("Invalid date format.Please use 'yyyy-MM-dd'.");
+                }
 
-                //convert DateOnlyDto to DateOnly
-                // var PublishDate = new DateOnly(books.PublishDate.Year, books.PublishDate.Month, books.PublishDate.Day);
-
-                //var publishDate = books.PublishDate;
+                //Convert the normalized date to DateOnly
                 
+                var publishDate = DateOnly.FromDateTime(parseDate);
                
 
                 var createdBooks = await _mediator.Send<BooksEntity>(new CreateBookCommand(
-                    books.Title, books.AuthorId, books.ISBN, books.Genre, books.Quantity, DateOnly.FromDateTime(DateTime.Today), books.AvailabilityStatus));
+                    books.Title,
+                    books.AuthorId,
+                    books.ISBN,
+                    books.Genre,
+                    books.Quantity,
+                    publishDate,
+                    books.AvailabilityStatus));
 
                 return Ok(
                     new
@@ -64,8 +73,7 @@ namespace LibraryManagementSystemApi.Controllers
                         createdBooks.ISBN,
                         createdBooks.Genre,
                         createdBooks.Quantity,
-                       // PublishDate = DateOnly.FromDateTime(DateTime.Today),
-                       createdBooks.PublishDate,
+                        createdBooks.PublishedDate,
                         createdBooks.AvailabilityStatus
 
 
@@ -79,7 +87,7 @@ namespace LibraryManagementSystemApi.Controllers
             }
         }
 
-      /*  [HttpPut("{id}")]
+        [HttpPut("{id}")]
 
         public async Task<IActionResult> UpdateBook(int id, [FromForm] BookDtos books)
         {
@@ -90,14 +98,23 @@ namespace LibraryManagementSystemApi.Controllers
 
             try
             {
-                var bookReturn = await _mediator.Send(new UpdateBookCommand(
+                //validate and noramlize the date format
+                if(!DateTime.TryParse(books.PublishedDate, out DateTime parsedDate))
+                {
+                    return BadRequest("Invalid date format. Please use 'yyyy-MM-dd'.");
+                }
+
+                //Convert the normalized date to DateOnly
+                var publishedDate = DateOnly.FromDateTime(parsedDate);
+
+                var bookReturn = await _mediator.Send<int>(new UpdateBookCommand(
                     id,
                     books.Title,
                     books.AuthorId,
-                    books.ISBN,
                     books.Genre,
+                    books.ISBN, 
                     books.Quantity,
-                   // DateOnly.FromDateTime(DateTime.Today),
+                    publishedDate,
                     books.AvailabilityStatus
 
                     ));
@@ -109,10 +126,12 @@ namespace LibraryManagementSystemApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occured while updating the book");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occured while updating the book");
+
             }
         }
 
-*/
+
 
         [HttpDelete("{id}")]
         public async Task<int> DeleteBook(int id)

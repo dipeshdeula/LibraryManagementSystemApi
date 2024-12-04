@@ -28,7 +28,7 @@ namespace Application.Handlers
                 Genre = request.Genre,
                 ISBN = request.ISBN,
                 Quantity = request.Quantity,
-                PublishDate =DateOnly.FromDateTime(DateTime.Today), // Set the current date
+                PublishedDate = request.PublishedDate,
                 AvailabilityStatus = request.AvailabilityStatus
             };
 

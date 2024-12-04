@@ -33,7 +33,7 @@ namespace Application.Handlers
             book.ISBN = book.ISBN;
             book.Genre = book.Genre;
             book.Quantity = book.Quantity;
-            book.PublishDate = book.PublishDate;
+            book.PublishedDate = book.PublishedDate;
             book.AvailabilityStatus = book.AvailabilityStatus;
 
             await _bookService.UpdateBooksAsync(book);

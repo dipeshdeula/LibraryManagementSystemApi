@@ -17,8 +17,12 @@ namespace Application.DTOs
         public string ISBN { get; set; } = string.Empty;
         public int Quantity { get; set; }
 
-       
-        public DateOnly PublishDate { get; set; }
+
+        public string PublishedDate { get; set; } = string.Empty;
         public string AvailabilityStatus { get; set; } = string.Empty;
+
+        //Utility to convert to/from DateOnly
+        public DateOnly GetPublishDateAsDateOnly() => DateOnly.ParseExact(PublishedDate, "yyyy-MM-dd");
+        public void SetPublishedDateFromDateOnly(DateOnly date) => PublishedDate = date.ToString("yyyy-MM-dd");
     }
 }
