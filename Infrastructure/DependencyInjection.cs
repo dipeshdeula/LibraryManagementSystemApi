@@ -23,11 +23,13 @@ namespace Infrastructure
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IReviewService, ReviewService>();
+            services.AddTransient<IBookBorrowService, BookBorrowService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IBookBorrowRepository, BookBorrowRepository>();
 
             services.AddScoped<JwtTokenHelper>();
 

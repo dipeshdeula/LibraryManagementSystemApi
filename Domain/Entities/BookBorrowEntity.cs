@@ -6,13 +6,19 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    public class BookBorrow
+    public class BookBorrowEntity
     {
         public int BorrowId { get; set; }
         public int UserId { get; set; }
         public int BookId { get; set; }
-        public DateOnly BorrowDate { get; set; }
-        public DateOnly ReturnDate { get; set; }
+        public DateTime BorrowDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
         public string Status { get; set; } = null!;
+
+     /*   public string BorrowDateFormatted => BorrowDate.ToString("yyyy-MM-dd");
+        public string ReturnDateFormatted => ReturnDate.ToString("yyyy-MM-dd");
+*/
+
+
     }
 }
