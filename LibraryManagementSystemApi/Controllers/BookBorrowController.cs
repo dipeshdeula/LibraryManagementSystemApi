@@ -15,9 +15,9 @@ namespace LibraryManagementSystemApi.Controllers
     {
         private readonly IBookBorrowService _bookBorrowService;
         private readonly IMediator _mediator;
-        private readonly ILogger _logger;
+        private readonly ILogger<BookBorrowController> _logger;
 
-        public BookBorrowController(IBookBorrowService bookBorrowService, IMediator mediator,ILogger logger)
+        public BookBorrowController(IBookBorrowService bookBorrowService, IMediator mediator,ILogger<BookBorrowController> logger)
         { 
             _bookBorrowService = bookBorrowService;
             _mediator = mediator;
