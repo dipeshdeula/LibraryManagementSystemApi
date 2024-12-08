@@ -1,0 +1,669 @@
+﻿/*
+
+Date: 2024/11/29
+Project Title:Library Management System
+Database : Sql Server
+Database Type: Stored procedure
+Published by: Dipesh Deula
+
+Total no. of Tables: 5
+Entities available in the project:
+1) Users => UserId(Pk), Username, Email,Pasword, Role
+2) Authors => AuthorId(PK), Name, Biography
+3) Books => BookId(Pk), Title, AuthorId(Fk), Genre, ISBN, PublishedDate, AvailabilityStatus
+4) BookBorrow => BorrowId(PK), UserId(FK),BookId(FK),BorrwoDate,ReturnDate,Status
+5) Reviews => ReviewId(PK),UserId(Fk), BookId(FK),Rating,Comments,ReviewDate
+
+
+Table Realtionships:
+- Users can borrow Books(one-to-many)
+-Books can be written by multiple Authors (many-to-many with a junction table)
+- Users can review multiple books (one-to many)
+
+
+
+
+*/
+
+-- Create Database
+CREATE DATABASE LibraryManagementSystem;
+USE LibraryManagementSystem;
+
+-- Create Users Table
+--Drop table dbo.Users;
+
+CREATE TABLE Users (
+    UserId INT IDENTITY(1, 1) PRIMARY KEY,
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    Password NVARCHAR(MAX) NOT NULL,
+    Role NVARCHAR(20) NOT NULL DEFAULT('User') CHECK (Role IN ('Admin', 'Editor', 'User')), -- Editor -> Author
+    UserProfile NVARCHAR(MAX) NOT NULL,
+    LoginStatus BIT NOT NULL DEFAULT (1),
+    FullName NVARCHAR(50) NOT NULL,
+    Phone NVARCHAR(20) NULL UNIQUE
+);
+
+-- Alter the Users table to allow NULL for FullName, UserProfile, etc.
+ALTER TABLE Users
+ALTER COLUMN FullName NVARCHAR(50) NULL;
+
+ALTER TABLE Users
+ALTER COLUMN UserProfile NVARCHAR(MAX) NULL;
+
+ALTER TABLE Users
+ALTER COLUMN Phone NVARCHAR(20) NULL;
+
+
+-- Create Authors Table
+
+CREATE TABLE Authors (
+    AuthorId INT IDENTITY(1, 1) PRIMARY KEY,
+    AuthorName NVARCHAR(100) NOT NULL,
+    Biography NVARCHAR(MAX) NULL,
+    AuthorProfile NVARCHAR(MAX) NOT NULL
+);
+
+-- Create Books Table
+CREATE TABLE Books (
+    BookId INT IDENTITY(1, 1) PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    AuthorId INT NOT NULL FOREIGN KEY REFERENCES Authors(AuthorId),
+    Genre NVARCHAR(50) NULL,
+    ISBN NVARCHAR(20) NOT NULL UNIQUE,
+    PublishedDate DATE NULL,
+    AvailabilityStatus NVARCHAR(20) NOT NULL DEFAULT 'Available'
+);
+
+Alter table Books Add Quantity int not null Default 0;
+
+select * from Books
+
+-- Create BookBorrow Table
+CREATE TABLE BookBorrow (
+    BorrowId INT IDENTITY(1, 1) PRIMARY KEY,
+    UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
+    BookId INT NOT NULL FOREIGN KEY REFERENCES Books(BookId),
+    BorrowDate DATE NOT NULL DEFAULT GETDATE(),
+    ReturnDate DATE NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Borrowed'
+);
+
+-- Create Reviews Table
+CREATE TABLE Reviews (
+    ReviewId INT IDENTITY(1, 1) PRIMARY KEY,
+    UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
+    BookId INT NOT NULL FOREIGN KEY REFERENCES Books(BookId),
+    Rating INT CHECK (Rating BETWEEN 1 AND 5),
+    Comments NVARCHAR(MAX) NULL,
+    ReviewDate DATE NOT NULL DEFAULT GETDATE()
+);
+
+-- Create Stored Procedure for Users
+--DROP PROCEDURE dbo.SP_Users;
+
+CREATE PROCEDURE [dbo].[SP_Users]
+    @flag CHAR(4), -- Operation flag: 'SE', 'I', 'U', 'D'
+    @UserId INT = NULL, -- User ID (for selection or update)
+    @Username NVARCHAR(50) = NULL,
+    @Email NVARCHAR(100) = NULL,
+    @Password NVARCHAR(MAX) = NULL,
+    @Role NVARCHAR(20) = 'User',
+    @UserProfile NVARCHAR(MAX) = NULL,
+    @LoginStatus BIT = 1, --Default value
+    @FullName NVARCHAR(50) = NULL,
+    @Phone NVARCHAR(20) = NULL,
+    @IsAdmin BIT = 0 -- Admin privilege flag
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- SELECT Operation
+	--IF @flag='AUTH'
+	--BEGIN
+		--    SELECT UserID, UserName, Email, UserProfile, FullName, Role, Phone, LoginStatus
+    --FROM Users
+    --WHERE UserName = @UserName AND Password = @Password;
+	--END
+		
+
+     IF @flag = 'SE'
+    BEGIN
+        IF @UserId IS NULL
+        BEGIN
+            SELECT * FROM Users ORDER BY UserId DESC;
+        END
+        ELSE
+        BEGIN
+            SELECT * FROM Users WHERE UserId = @UserId;
+        END
+        RETURN;
+    END
+
+    -- INSERT Operation
+    ELSE IF @flag = 'I'
+    BEGIN
+        BEGIN TRY
+            BEGIN TRANSACTION;
+
+            INSERT INTO Users (Username, Email, Password, Role, UserProfile, FullName, Phone,LoginStatus)
+            VALUES (@Username, @Email, @Password, @Role, @UserProfile, @FullName, @Phone,@LoginStatus);
+
+            COMMIT TRANSACTION;
+            SELECT 0 AS MsgId, 'Record has been successfully saved.' AS Msg;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRANSACTION;
+
+            THROW;
+        END CATCH;
+        RETURN;
+    END
+
+    -- UPDATE Operation
+    ELSE IF @flag = 'U'
+    BEGIN
+        IF @IsAdmin = 1 -- Admin can update the role
+        BEGIN
+            UPDATE Users
+            SET Username = @Username,
+                Email = @Email,
+                Password = @Password,
+                Role = @Role, -- Allow Role update for Admins
+                UserProfile = @UserProfile,
+                FullName = @FullName,
+                Phone = @Phone,
+				LoginStatus = COALESCE(@LoginStatus,LoginStatus)
+            WHERE UserId = @UserId;
+
+            SELECT 0 AS MsgId, 'Record and Role have been successfully updated.' AS Msg;
+        END
+        ELSE -- Restrict Role update for non-admins
+        BEGIN
+            UPDATE U
+            SET 
+				U.Username = @Username,
+                U.Email = @Email,
+                U.Password = @Password,
+                U.UserProfile = COALESCE(@UserProfile,U.UserProfile), --Use coalesce to keep existing value if null
+                U.FullName = COALESCE(@FullName,U.FullName),
+                U.Phone = COALESCE(@Phone,U.Phone),
+				U.LoginStatus = COALESCE(@LoginStatus,U.LoginStatus)
+			From dbo.Users As U
+            WHERE UserId = @UserId;
+
+            SELECT 0 AS MsgId, 'Record has been successfully updated, but Role change is restricted.' AS Msg;
+        END
+        RETURN;
+    END
+
+    -- DELETE Operation
+    ELSE IF @flag = 'D'
+    BEGIN
+        DELETE FROM Users WHERE UserId = @UserId;
+        SELECT 0 AS MsgId, 'Record has been removed.' AS Msg;
+        RETURN;
+    END
+END;
+
+-- Empty the Users table
+DELETE FROM Users;
+
+-- Reset the identity seed to 1
+DBCC CHECKIDENT ('Users', RESEED, 0);
+
+-- Test the Procedure
+EXEC [dbo].[SP_Users] @flag = 'SE'; -- Select All Users
+EXEC [dbo].[SP_Users] @flag = 'I', @Username = 'testuser11', @Email = 'test@11example.com', @Password = 'password', @UserProfile = 'test_profile', @Role='Admin', @FullName = 'Test User',@Phone=9817153258845;
+EXEC [dbo].[SP_Users] @flag = 'U', @UserId = 1, @Username = 'Dipesh Deula', @Password='Hello@123', @Email = 'updated@example.com';
+EXEC [dbo].[SP_Users] @flag = 'D', @UserId = 1;
+
+EXEC [dbo].[SP_Users] @flag = 'I', @Username = 'testuser111', @Email = 'test@191example.com', @Password = 'password', @UserProfile = 'test_profile', @FullName = 'Test User',@Phone=981719953258845;
+
+EXEC [dbo].[SP_Users] @flag = 'U', @UserId = 5, @Username = 'Dipesh ddeula', @Password='Hello@123', @Email = 'update1d@example.com' ,@Role='Admin';
+
+
+
+
+--create stored Procedure for Authors
+DROP PROC [dbo].SP_Authors
+select * from Authors;
+CREATE PROC [dbo].[SP_Authors]
+@flag char(2), --operation flag: 'SE','I','U','D'
+@AuthorId int = NULL,
+@AuthorName NVARCHAR(100) = NULL,
+@Biography NVARCHAR(MAX) = NULL,
+@AuthorProfile NVARCHAR(MAX) = NULL
+AS
+Begin
+	SET NOCOUNT ON;
+	--select operation
+	IF @flag ='SE'
+	BEGIN
+		IF @AuthorId IS NULL
+		BEGIN
+			SELECT * FROM Authors ORDER BY AuthorId DESC;
+		END
+		ELSE
+		BEGIN
+			SELECT * FROM Authors where AuthorId = @AuthorId;
+		END
+		RETURN;
+	END
+
+	--Insert operation
+	ELSE IF @flag = 'I'
+	BEGIN
+		BEGIN TRY
+			BEGIN TRAN;
+				INSERT INTO Authors (AuthorName, AuthorProfile,Biography) values (@AuthorName , @AuthorProfile,@Biography);
+			COMMIT TRAN;
+			SELECT 0 as MsgId, 'Record has been successfully saved.' as Msg;
+		END TRY
+		BEGIN CATCH
+			IF @@TRANCOUNT > 0
+				ROLLBACK TRAN;
+			THROW;
+		END CATCH;
+		RETURN;
+	END
+
+	--Update Operation
+	ELSE IF @flag ='U'
+	BEGIN
+		UPDATE Authors
+		SET AuthorName = @AuthorName,
+			AuthorProfile = COALESCE(@AuthorProfile,AuthorProfile),
+			Biography = @Biography
+		where AuthorId = @AuthorId;
+
+		SELECT 0 as MsgId , 'Record has beeen successfully updated.' as Msg;
+
+	END
+
+	--Delete Operation
+	ELSE IF @flag ='D'
+	BEGIN
+		DELETE FROM Authors where AuthorId = @AuthorId;
+		SELECT 0 as MsgId, 'Record has been removed' as Msg;
+		Return
+	END;
+End;
+select * from Authors
+--execute proc author
+EXEC [dbo].[SP_Authors] @flag ='SE'; --select all authors
+EXEC [dbo].[SP_Authors] @flag ='I', @AuthorName='Dipesh',@AuthorProfile='author',@Biography='dipesh deula';
+EXEC [dbo].[SP_Authors] @flag ='U', @AuthorId=1, @AuthorName='Ramparsad',@Biography='biography';
+EXEC [dbo].[SP_Authors] @flag = 'D', @AuthorId = 3;
+
+
+--creating Book Procedure
+CREATE PROCEDURE [dbo].[SP_Books]
+@flag CHAR(2), --operation flag: 'SE', 'I', 'U', 'D'
+@BookId INT = NULL,
+@Title NVARCHAR(200) = NULL,
+@AuthorId INT = NULL,
+@Genre NVARCHAR(50) = NULL,
+@ISBN NVARCHAR(20) = NULL,
+@PublishedDate DATE = NULL,
+@AvailabilityStatus NVARCHAR(20) = NULL, -- Optional parameter
+@Quantity INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- SELECT operation
+    IF @flag = 'SE'
+    BEGIN
+        IF @BookId IS NULL
+        BEGIN
+            SELECT * FROM Books ORDER BY BookId DESC;
+        END
+        ELSE
+        BEGIN
+            SELECT * FROM Books WHERE BookId = @BookId;
+        END
+        RETURN;
+    END;
+
+    -- INSERT operation
+    ELSE IF @flag = 'I'
+    BEGIN
+        BEGIN TRY
+            BEGIN TRAN;
+            INSERT INTO Books (Title, AuthorId, Genre, ISBN, PublishedDate, AvailabilityStatus, Quantity)
+            VALUES (
+                @Title, 
+                @AuthorId, 
+                @Genre, 
+                @ISBN, 
+                @PublishedDate, 
+                CASE WHEN COALESCE(@Quantity, 0) = 0 THEN 'Unavailable' ELSE 'Available' END,
+                COALESCE(@Quantity, 0)
+            );
+            COMMIT TRAN;
+            SELECT 0 AS MsgId, 'Record has been successfully saved.' AS Msg;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRAN;
+            THROW;
+        END CATCH;
+        RETURN;
+    END;
+
+    -- UPDATE operation
+    ELSE IF @flag = 'U'
+    BEGIN
+        BEGIN TRY
+            BEGIN TRAN;
+            UPDATE Books
+            SET Title = COALESCE(@Title, Title),
+                AuthorId = COALESCE(@AuthorId, AuthorId),
+                Genre = COALESCE(@Genre, Genre),
+                ISBN = COALESCE(@ISBN, ISBN),
+                PublishedDate = COALESCE(@PublishedDate, PublishedDate),
+                Quantity = COALESCE(@Quantity, Quantity),
+                AvailabilityStatus = CASE 
+                    WHEN COALESCE(@Quantity, Quantity) = 0 THEN 'Unavailable'
+                    ELSE 'Available'
+                END
+            WHERE BookId = @BookId;
+
+            COMMIT TRAN;
+            SELECT 0 AS MsgId, 'Record has been successfully updated.' AS Msg;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRAN;
+            THROW;
+        END CATCH;
+        RETURN;
+    END;
+
+    -- DELETE operation
+    ELSE IF @flag = 'D'
+    BEGIN
+        DELETE FROM Books WHERE BookId = @BookId;
+        SELECT 0 AS MsgId, 'Record has been removed.' AS Msg;
+        RETURN;
+    END;
+END;
+
+
+select * from Authors;
+
+--execute proc Books
+EXEC [dbo].[SP_Books] @flag='SE';
+EXEC SP_Books @flag = 'I', @Title = 'Book A', @AuthorId = 3, @Quantity = 0,@ISBN=99990001;
+
+
+EXEC [dbo].[SP_Books] @flag='I', @Title='harry potter',@AuthorId=1,@Genre='Poet',@ISBN=99998000, @PublishedDate='2024/11/29' ;
+EXEC [dbo].[SP_Books] @flag='I', @Title='harry potter',@AuthorId=1,@Genre='Poet',@ISBN=99990100, @PublishedDate='2024-11-29', @Quantity=10 ;
+
+
+EXEC [dbo].[SP_Books] @flag ='U', @BookId=3, @Title='Munamadan' , @Genre='Lovestory',@ISBN='99999' ,@PublishedDate='2024-12-2' ;
+
+EXEC [dbo].[SP_Books] @flag='D', @BookId=2;
+
+--create BorrowBook store procedure
+-- Create or alter the BorrowBook stored procedure
+ALTER PROCEDURE [dbo].[SP_Borrow_Books]
+    @flag CHAR(2), -- operation flag: 'SE', 'I', 'U', 'D'
+    @BorrowId INT = NULL,
+    @UserId INT = NULL,
+    @BookId INT = NULL,
+    @BorrowDate DATE = NULL,
+    @ReturnDate DATE = NULL, -- Default value to ensure it's optional
+    @Status NVARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Select Operation (SE)
+    IF @flag = 'SE'
+    BEGIN
+        IF @BorrowId IS NULL
+        BEGIN
+            SELECT * 
+            FROM BookBorrow 
+            ORDER BY BorrowId DESC;
+        END
+        ELSE
+        BEGIN
+            SELECT * 
+            FROM BookBorrow 
+            WHERE BorrowId = @BorrowId;
+        END
+        RETURN;
+    END;
+
+    -- Insert Operation (I) - Borrow Book
+    ELSE IF @flag = 'I'
+    BEGIN
+        BEGIN TRY
+            BEGIN TRANSACTION;
+
+			--check if the user has already borrowed this book and not returned it
+			IF EXISTS(
+				SELECT 1
+				FROM BookBorrow
+				WHERE UserId= @UserId AND BookId = @BookId AND ReturnDate IS NULL
+			)
+			BEGIN
+				RAISERROR('This book has already been borrowed by this user and not returned.',16,1)
+				ROLLBACK TRANSACTION;
+				RETURN;
+			END;
+
+            -- Check if the book is already fully borrowed (no available copies)
+            DECLARE @ActiveBorrowCount INT;
+            SELECT @ActiveBorrowCount = COUNT(*)
+            FROM BookBorrow
+            WHERE BookId = @BookId AND ReturnDate IS NULL;
+
+            IF @ActiveBorrowCount >=(SELECT Quantity FROM Books WHERE BookId = @BookId)
+            BEGIN
+                RAISERROR('No copies of this book are available for borrowing.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END;
+			
+			--select Quantity from Books as b inner join BookBorrow as bb on b.BookId = bb.BookId;
+
+            -- Check the available quantity of the book in the Books table
+            DECLARE @QuantityCount INT;
+            SELECT @QuantityCount = dbo.Books.Quantity
+            FROM Books
+            WHERE BookId = @BookId;
+
+            -- Ensure the book quantity is available for borrowing
+            IF @QuantityCount <= 0
+            BEGIN
+                RAISERROR('No copies of this book are available for borrowing.', 16, 1);
+                ROLLBACK TRANSACTION;
+                RETURN;
+            END;
+
+            -- Proceed with borrowing the book (Insert into BookBorrow table)
+            INSERT INTO BookBorrow (UserId, BookId, BorrowDate, ReturnDate, Status)
+            VALUES (@UserId, @BookId,COALESCE(@BorrowDate,GETDATE()),NULL, 'Not Returned');
+
+            -- Update the quantity of the book after borrowing
+			--Decrement the quantity of the book
+            UPDATE Books
+            SET Quantity = Quantity - 1
+            WHERE BookId = @BookId;
+
+            COMMIT TRANSACTION;
+
+            SELECT 0 AS MsgId, 'Book has been successfully saved.' AS Msg;
+        END TRY
+        BEGIN CATCH
+            IF @@TRANCOUNT > 0
+                ROLLBACK TRANSACTION;
+            THROW;
+        END CATCH;
+        RETURN;
+    END;
+
+    -- Update Operation (U) - Return Book / Modify Borrow Record
+    ELSE IF @flag = 'U'
+    BEGIN
+        BEGIN TRY
+			BEGIN TRANSACTION;
+            -- Update the record
+            UPDATE BookBorrow
+            SET UserId = COALESCE(@UserId, UserId),
+                BookId = COALESCE(@BookId, BookId),
+                BorrowDate = COALESCE(@BorrowDate, BorrowDate),
+                ReturnDate = COALESCE(@ReturnDate, ReturnDate),
+                Status = CASE
+							WHEN @ReturnDate IS NOT NULL THEN 'Returned'
+							ELSE 'Borrowed'
+						 END
+				WHERE BorrowId = @BorrowId;
+
+            -- If the book is being returned, update the quantity
+            IF @ReturnDate IS NOT NULL
+            BEGIN
+                UPDATE Books
+                SET Quantity = Quantity + 1
+                WHERE BookId = (SELECT BookId from BookBorrow WHERE BorrowId = @BorrowId);
+            END
+			
+			COMMIT TRANSACTION;
+
+            SELECT 0 AS MsgId, 'Borrow book has been successfully updated.' AS Msg;
+        END TRY
+        BEGIN CATCH
+			IF @@TRANCOUNT > 0
+				ROLLBACK TRANSACTION;
+            THROW;
+        END CATCH;
+        RETURN;
+    END;
+
+    -- Delete Operation (D)
+    ELSE IF @flag = 'D'
+    BEGIN
+        BEGIN TRY
+            -- Delete the borrow record
+            DELETE FROM BookBorrow
+            WHERE BorrowId = @BorrowId;
+
+            SELECT 0 AS MsgId, 'Record has been removed.' AS Msg;
+        END TRY
+        BEGIN CATCH
+            THROW;
+        END CATCH;
+        RETURN;
+    END;
+END;
+
+
+--Execute BorrorwBook Procedure
+Select * from Users;
+Select * from Books;
+select * from BookBorrow
+Truncate table BookBorrow
+Exec [dbo].[SP_Borrow_Books] @flag='SE';
+
+EXEC SP_Borrow_Books @flag = 'I', @UserId = 2, @BookId = 12 ,@BorrowDate='2024-05-3' ;
+EXEC SP_Borrow_Books @flag = 'I', @UserId = 1, @BookId = 2 ,@BorrowDate='2024-05-4';
+
+EXEC SP_Borrow_Books @flag = 'SE';
+EXEC SP_Borrow_Books @flag = 'U', @BorrowId = 2, @ReturnDate = '2024-12-01';
+EXEC SP_Borrow_Books @flag = 'D', @BorrowId = 4;
+
+
+
+--Creating store procedure for Review
+CREATE PROCEDURE [SP_Review]
+@flag char(2),
+@ReviewId INT = NULL,
+@UserId INT = NULL,
+@BookId INT = NULL,
+@Rating INT = NULL,
+@Comments NVARCHAR(MAX) = NULL,
+@ReviewDate DATE =NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	--select operation
+	IF @flag = 'SE'
+	BEGIN
+		IF @ReviewId IS NULL
+		BEGIN
+			SELECT * FROM Reviews ORDER BY ReviewId DESC;
+		END
+		ELSE
+		BEGIN
+			SELECT * FROM Reviews where ReviewId = @ReviewId;
+		END;
+	RETURN;
+	END;
+
+	--Insert operation
+	ELSE IF @flag ='I'
+	BEGIN
+		BEGIN TRY
+			BEGIN TRAN;
+			INSERT INTO Reviews (UserId,BookId,Rating,Comments,ReviewDate)
+			Values(@UserId,@BookId,@Rating,@Comments,COALESCE(@ReviewDate,GETDATE()));
+
+			COMMIT TRAN;
+
+			Select 0 as MsgId,'Record has been successfully saved.' as Msg;
+		END TRY
+		BEGIN CATCH
+			IF @@TRANCOUNT>0
+				ROLLBACK Tran;
+			THROW;
+		END CATCH
+		RETURN;
+	END;
+
+	--Update operation
+	ELSE IF @flag = 'U'
+	BEGIN
+		BEGIN TRY
+			--Update the record
+			UPDATE Reviews
+			SET UserId = COALESCE(@UserId,UserId),
+				BookId = COALESCE(@BookId,BookId),
+				Rating = @Rating,
+				Comments = @Comments,
+				ReviewDate = COALESCE(@ReviewDate,ReviewDate)
+
+			Where ReviewId = @ReviewId;
+			SELECT 0 as MsgId, 'Record has been successfully upated' as Msg
+		END TRY
+		BEGIN CATCH
+			THROW;
+		END CATCH;
+		RETURN;
+	END
+
+	--Delete operation
+	ELSE IF @flag = 'D'
+	BEGIN
+		DELETE FROM Reviews where ReviewId = @ReviewId;
+		SELECT 0 as MsgId, 'Record has been removed' as Msg;
+		RETURN;
+	END;
+END
+
+select * from Users;
+select * from Books
+
+--Execute proc Reviews
+Exec [dbo].[SP_Review] @flag='SE'; --select all
+EXEC SP_Review @flag = 'I', @UserId = 2, @BookId = 3, @Rating = 5, @Comments = 'Great Book!'; --insert data
+EXEC SP_Review @flag = 'U', @ReviewId = 1, @Rating = 4, @Comments = 'Updated Comment'; --update data
+
+
+
+
+
