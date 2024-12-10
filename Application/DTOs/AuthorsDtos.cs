@@ -13,6 +13,6 @@ namespace Application.DTOs
         public string AuthorName { get; set; } = null!;
         public string Biography { get; set; } = null!;
         public string AuthorProfile { get; set; } = null!;
-        public IFormFile AuthorImage { get; set; }
+        public IFormFile? AuthorImage { get; set; }
     }
 }
