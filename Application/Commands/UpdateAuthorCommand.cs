@@ -10,7 +10,7 @@ namespace Application.Commands
 {
     public class UpdateAuthorCommand : IRequest<int>
     {
-        public UpdateAuthorCommand(int id, string authorName, string biography, string authorProfile, IFormFile authorImage)
+        public UpdateAuthorCommand(int id, string? authorName = null, string? biography=null, string? authorProfile = null, IFormFile? authorImage=null)
         {
             AuthorId = id;
             AuthorName = authorName;
@@ -20,9 +20,9 @@ namespace Application.Commands
         }
         
         public int AuthorId { get; set; }
-        public string AuthorName { get; set; }
-        public string Biography { get; set; }
-        public string AuthorProfile { get; set; }
-        public IFormFile AuthorImage { get; set; }
+        public string? AuthorName { get; set; }
+        public string? Biography { get; set; }
+        public string? AuthorProfile { get; set; }
+        public IFormFile? AuthorImage { get; set; }
     }
 }

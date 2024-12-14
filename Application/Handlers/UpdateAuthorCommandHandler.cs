@@ -28,26 +28,36 @@ namespace Application.Handlers
 
             if (request.AuthorImage != null && request.AuthorImage.Length > 0)
             {
-                //Generate a unique file name using Guid
+                // Generate a unique file name using Guid
                 var fileName = Guid.NewGuid() + Path.GetExtension(request.AuthorImage.FileName);
                 var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/AuthorImages");
 
-                //check if the directory and file name to get the full file path
+                // Ensure the directory exists
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                // Get the full file path
                 var filePath = Path.Combine(directoryPath, fileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await request.AuthorImage.CopyToAsync(stream);
                 }
 
-                //set the image URL in the author profile
+                // Set the image URL in the author profile
                 request.AuthorProfile = fileName;
             }
 
-            author.AuthorId = request.AuthorId;
-            author.AuthorName = request.AuthorName;
-            author.Biography = request.Biography;
+            /*  author.AuthorId = request.AuthorId;
+              author.AuthorName = request.AuthorName;
+              author.Biography = request.Biography;*/
 
-            await _authorService.UpdateAuthorAsync(author);
+            author.AuthorName = request.AuthorName ?? author.AuthorName;
+            author.Biography = request.Biography ?? author.Biography;
+            author.AuthorProfile = request.AuthorProfile ?? author.AuthorProfile;
+
+            await _authorService.UpdateAuthorAsync(author, request.AuthorImage);
             return author.AuthorId;
         }
     }

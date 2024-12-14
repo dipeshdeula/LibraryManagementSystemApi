@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Services
 {
@@ -26,8 +27,26 @@ namespace Infrastructure.Services
             return author;
         }
 
-        public async Task UpdateAuthorAsync(AuthorsEntity author)
+        public async Task UpdateAuthorAsync(AuthorsEntity author, IFormFile? authorImage =null)
         {
+            var existingAuthor = await _authorRepository.GetAuthorsByIdAsync(author.AuthorId);
+            if (existingAuthor == null)
+            {
+                throw new Exception("Author not found");
+            }
+
+            existingAuthor.AuthorName = author.AuthorName ?? existingAuthor.AuthorName;
+            existingAuthor.Biography = author.Biography ?? existingAuthor.Biography;
+            existingAuthor.AuthorProfile = author.AuthorProfile ?? existingAuthor.AuthorProfile;
+
+            //Handle the AuthorImage property
+           if (authorImage != null)
+            { 
+                //Save the image to a file or database and update the AuthorProfile property
+                var imagePath = SaveAuthorImage(authorImage);
+                existingAuthor.AuthorProfile = imagePath;
+            }
+
             await _authorRepository.UpdateAuthorAsync(author);
 
         }
@@ -37,6 +56,15 @@ namespace Infrastructure.Services
             await _authorRepository.DeleteAuthorAsync(id);
         }
 
-      
+        private string SaveAuthorImage(IFormFile authorImage)
+        {
+            // Implement the logic to save the image and return the file path or URL
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "AuthorImages", authorImage.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                authorImage.CopyTo(stream);
+            }
+            return filePath;
+        }
     }
 }
