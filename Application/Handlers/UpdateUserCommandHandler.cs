@@ -50,13 +50,14 @@ namespace Application.Handlers
                 request.UserProfile = fileName;
             }
 
-            user.UserID = request.UserId;
-            user.UserName = request.UserName;
-            user.Password = request.Password;
-            user.Email = request.Email;
-            user.FullName = request.FullName;
-            user.Role = request.Role;
-            user.Phone = request.Phone;
+            //user.UserID = request.UserId;
+            user.UserName = request.UserName ?? user.UserName;
+            user.Password = request.Password ?? user.Password;
+            user.Email = request.Email ?? user.Email;
+            user.FullName = request.FullName ?? user.FullName;
+            user.UserProfile = request.UserProfile ?? user.UserProfile;
+            user.Role = request.Role ?? user.Role;
+            user.Phone = request.Phone ?? user.Phone;
             user.LoginStatus = request.LoginStatus;
 
             await _userService.UpdateUserAsync(user);

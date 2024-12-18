@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Domain.Interfaces
         Task<IEnumerable<UserEntity>> GetAllUserAsync();
         Task<UserEntity> GetUserByIdAsync(int id);
         Task<UserEntity>CreateUserAsync(UserEntity user);
-        Task UpdateUserAsync(UserEntity user);
+        Task UpdateUserAsync(UserEntity user, IFormFile? userImage=null);
         Task DeleteUserAsync(int id);
     }
 }

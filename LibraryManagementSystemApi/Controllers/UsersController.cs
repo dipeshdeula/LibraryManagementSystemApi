@@ -45,7 +45,7 @@ namespace LibraryManagementSystemApi.Controllers
                     return BadRequest("Role is required.");
                 }
                 var createdUser = await _mediator.Send(new CreateUserCommand(
-                    users.UserName, users.Password, users.Email, string.Empty, users.FullName, users.Phone, users.Role, users.LoginStatus, users.UserImage));
+                    users.UserName, users.Password, users.Email, users.UserProfile, users.FullName, users.Phone, users.Role, users.LoginStatus, users.UserImage));
 
                 // Generate the image URL
                 var imageUrl = Url.Action("GetUserImage", "Users", new { fileName = createdUser.UserProfile }, Request.Scheme);

@@ -10,7 +10,7 @@ namespace Application.Commands
 {
     public class UpdateUserCommand : IRequest<int>
     {
-        public UpdateUserCommand(int id,string username, string password, string email, string userProfile, string fullName, string phone, string role, bool loginStatus, IFormFile userImage)
+        public UpdateUserCommand(int id,string? username = null, string? password = null, string? email = null, string? userProfile = null, string? fullName = null, string? phone = null, string? role = null, bool loginStatus=false, IFormFile? userImage=null)
         {
             UserId = id;
             UserName = username;
@@ -26,17 +26,17 @@ namespace Application.Commands
         }
         public int UserId { get; set; }
 
-        public string UserName { get; set; } = null!;
-        public string Password { get; set; } = null!;
-        public string Email { get; set; } = null!;
+        public string? UserName { get; set; }
+        public string?Password { get; set; }
+        public string? Email { get; set; }
 
-        public string UserProfile { get; set; } = null!;
-        public string FullName { get; set; } = null!;
-        public string Phone { get; set; } = null!;
-        public string Role { get; set; } = null!;
+        public string? UserProfile { get; set; }
+        public string? FullName { get; set; }
+        public string? Phone { get; set; } 
+        public string? Role { get; set; }
 
         public bool LoginStatus { get; set; } = false;
-        public IFormFile UserImage { get; set; }
+        public IFormFile? UserImage { get; set; }
 
     }
 }
