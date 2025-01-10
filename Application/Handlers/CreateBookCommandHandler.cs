@@ -24,11 +24,11 @@ namespace Application.Handlers
             var book = new BooksEntity
             {
                 Title = request.Title,
-                AuthorId = request.AuthorId,
+                AuthorId = request.AuthorId ??0,
                 Genre = request.Genre,
                 ISBN = request.ISBN,
-                Quantity = request.Quantity,
-                PublishedDate = request.PublishedDate,
+                Quantity = request.Quantity ?? 0,
+                //PublishedDate = request.PublishedDate,
                 AvailabilityStatus = request.AvailabilityStatus
             };
 

@@ -21,19 +21,16 @@ namespace Application.Handlers.BookBorrowHandler
         }
         public async Task<BookBorrowEntity> Handle(CreateBookBorrowCommand request, CancellationToken cancellationToken)
         {
-            if (request.BorrowDate > DateTime.Now)
-                throw new ValidationException("Borrow date cannot be in the future");
-
-            if (request.ReturnDate <= request.BorrowDate)
-                throw new ValidationException("Return date must be after borrow date.");
               
             var bookBorrow = new BookBorrowEntity
             {
                 UserId = request.UserId,
-                BookId = request.BookId,
-                BorrowDate = request.BorrowDate,
+            //    BookId = request.BookId ?? 0,
+                Barcode = request.Barcode,
+                BorrowDate = request.BorrowDate ?? DateTime.Now, //Default to current date if null
                 ReturnDate = request.ReturnDate,
-                Status = request.Status,
+                DueDate = request.DueDate ?? request.BorrowDate?.AddMonths(3)?? DateTime.Now.AddMonths(3), //default to 3 months from borrow date or current date if null
+              //  Status = request.Status,
             };
 
             return await _bookBorrowService.CreateBookBorrowAsync(bookBorrow);

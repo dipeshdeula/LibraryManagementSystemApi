@@ -14,5 +14,7 @@ namespace Domain.Interfaces
         Task<string> AddBookBorrowAsync(BookBorrowEntity bookBorrow);
         Task<string> UpdateBookBorrowAsync(BookBorrowEntity bookBorrow);
         Task<string> DeleteBookBorrowAsync(int id);
+
+        Task<bool> IsBookCopyAvailable(int barcode);
     }
 }

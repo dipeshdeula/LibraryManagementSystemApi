@@ -45,23 +45,23 @@ namespace LibraryManagementSystemApi.Controllers
                     return BadRequest("AuthorId is Required");
                 }
                 //Validate and normalize the date format
-                if (!DateTime.TryParse(books.PublishedDate, out DateTime parseDate))
+              /*  if (!DateTime.TryParse(books.PublishedDate, out DateTime parseDate))
                 {
                     return BadRequest("Invalid date format.Please use 'yyyy-MM-dd'.");
-                }
+                }*/
 
                 //Convert the normalized date to DateOnly
                 
-                var publishDate = DateOnly.FromDateTime(parseDate);
+                //var publishDate = DateOnly.FromDateTime(parseDate);
                
 
-                var createdBooks = await _mediator.Send<BooksEntity>(new CreateBookCommand(
+                var createdBooks = await _mediator.Send(new CreateBookCommand(
                     books.Title,
                     books.AuthorId,
                     books.ISBN,
                     books.Genre,
                     books.Quantity,
-                    publishDate,
+                   // publishDate,
                     books.AvailabilityStatus));
 
                 return Ok(
@@ -73,7 +73,7 @@ namespace LibraryManagementSystemApi.Controllers
                         createdBooks.ISBN,
                         createdBooks.Genre,
                         createdBooks.Quantity,
-                        createdBooks.PublishedDate,
+                        //createdBooks.PublishedDate,
                         createdBooks.AvailabilityStatus
 
 
@@ -99,22 +99,22 @@ namespace LibraryManagementSystemApi.Controllers
             try
             {
                 //validate and noramlize the date format
-                if(!DateTime.TryParse(books.PublishedDate, out DateTime parsedDate))
+              /*  if(!DateTime.TryParse(books.PublishedDate, out DateTime parsedDate))
                 {
                     return BadRequest("Invalid date format. Please use 'yyyy-MM-dd'.");
-                }
+                }*/
 
                 //Convert the normalized date to DateOnly
-                var publishedDate = DateOnly.FromDateTime(parsedDate);
+              //  var publishedDate = DateOnly.FromDateTime(parsedDate);
 
-                var bookReturn = await _mediator.Send<int>(new UpdateBookCommand(
+                var bookReturn = await _mediator.Send(new UpdateBookCommand(
                     id,
                     books.Title,
                     books.AuthorId,
                     books.Genre,
                     books.ISBN, 
                     books.Quantity,
-                    publishedDate,
+                    //publishedDate,
                     books.AvailabilityStatus
 
                     ));

@@ -10,23 +10,23 @@ namespace Application.Commands
 { 
     public class CreateBookCommand : IRequest<BooksEntity>
     {
-        public CreateBookCommand(string title, int authorId, string genre, string iSBN,int quantity, DateOnly publishedDate, string availabilityStatus)
+        public CreateBookCommand(string title, int? authorId, string genre, string iSBN,int? quantity, string availabilityStatus)
         {
             Title = title;
             AuthorId = authorId;
             Genre = genre;
             ISBN = iSBN;
             Quantity = quantity;
-            PublishedDate = publishedDate;
+           // PublishedDate = publishedDate;
             AvailabilityStatus = availabilityStatus;
 
         }
         public string Title { get; set; }
-        public int AuthorId { get; set; }
+        public int? AuthorId { get; set; }
         public string Genre { get; set; }
         public string ISBN { get; set; }
-        public int Quantity { get; set; }
-        public DateOnly PublishedDate { get; set; }
+        public int? Quantity { get; set; }
+      //  public DateOnly PublishedDate { get; set; }
         public string AvailabilityStatus{ get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Domain.Entities;
 using Domain.Interfaces;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Infrastructure.Services
 {
     public class BookBorrowService : IBookBorrowService
     {
+        private int _borrowPeriodDays = 90;
         private readonly IBookBorrowRepository _bookBorrowRepository;
 
         public BookBorrowService(IBookBorrowRepository bookBorrowRepository)
@@ -32,15 +34,23 @@ namespace Infrastructure.Services
 
         public async Task<BookBorrowEntity> CreateBookBorrowAsync(BookBorrowEntity bookBorrow)
         {
+
             //validate the borrow data
             if (bookBorrow.BorrowDate > DateTime.Now)
                 throw new ArgumentException("Borrow date cannot be in the future");
+
+            //check book availability
+            var isAvailable = await _bookBorrowRepository.IsBookCopyAvailable(bookBorrow.Barcode);
+            if (!isAvailable)
+                throw new InvalidOperationException("This book copy is not available for borrowing.");
+
+            
 
             //fetch existing borrow records
             var existingBorrows = await _bookBorrowRepository.GetAllBookBorrowAsync();
 
             //check if the book is already borrowed and not returned
-            bool isBookBorrowed = existingBorrows.Any(b => b.BookId == bookBorrow.BookId && b.Status == "Borrowed");
+            bool isBookBorrowed = existingBorrows.Any(b => b.Barcode == bookBorrow.Barcode && b.Status == "Borrowed" || b.Status == "Overdue");
 
             if (isBookBorrowed)
                 throw new InvalidOperationException("The book is already borrowed by another user.");
@@ -48,15 +58,14 @@ namespace Infrastructure.Services
 
             //Ensure the same user doesn't borrow the same book again without returning it
             bool isBookBorrowedBySameUser = existingBorrows.Any(b =>
-                b.BookId == bookBorrow.BookId &&
+                b.Barcode == bookBorrow.Barcode &&
                 b.UserId == bookBorrow.UserId &&
                 b.Status == "Borrowed");
 
             if (isBookBorrowedBySameUser)
                 throw new InvalidOperationException("You cannot borrow the same book again until it is returned.");
 
-            //set return date dynamically (e.g, 30 days from borrow date)
-            bookBorrow.ReturnDate = bookBorrow.BorrowDate.AddDays(30); //Example loan period
+            bookBorrow.DueDate = bookBorrow.BorrowDate.AddDays(_borrowPeriodDays);
             bookBorrow.Status = "Borrowed";
 
             //call repository to add the borrow record

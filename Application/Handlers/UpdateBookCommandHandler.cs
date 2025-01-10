@@ -28,13 +28,13 @@ namespace Application.Handlers
             }
 
             book.BookId = request.BookId;
-            book.Title = request.Title;
-            book.AuthorId = request.AuthorId;
-            book.ISBN = book.ISBN;
-            book.Genre = book.Genre;
-            book.Quantity = book.Quantity;
-            book.PublishedDate = book.PublishedDate;
-            book.AvailabilityStatus = book.AvailabilityStatus;
+            book.Title = request.Title ?? book.Title;
+            book.AuthorId = request.AuthorId ?? book.AuthorId;
+            book.ISBN = request.ISBN ?? book.ISBN;
+            book.Genre = request.Genre ?? book.Genre;
+            book.Quantity = request.Quantity ?? book.Quantity;
+           // book.PublishedDate = book.PublishedDate;
+            book.AvailabilityStatus = request.AvailabilityStatus ?? book.AvailabilityStatus;
 
             await _bookService.UpdateBooksAsync(book);
             return book.BookId;

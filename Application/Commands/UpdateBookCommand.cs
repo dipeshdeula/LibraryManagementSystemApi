@@ -9,7 +9,7 @@ namespace Application.Commands
 {
     public class UpdateBookCommand : IRequest<int>
     {
-        public UpdateBookCommand(int bookId,string title, int authorId, string genre, string iSBN, int quantity,DateOnly publishedDate, string availabilityStatus)
+        public UpdateBookCommand(int bookId,string? title = null, int? authorId = null, string? genre = null, string? iSBN = null, int? quantity = null, string? availabilityStatus = null)
         {
             BookId = bookId;
             Title = title;
@@ -17,17 +17,17 @@ namespace Application.Commands
             Genre = genre;
             ISBN = iSBN;
             Quantity = quantity;
-            PublishedDate = publishedDate;
+           // PublishedDate = publishedDate;
             AvailabilityStatus = availabilityStatus;
 
         }
         public int BookId { get; set; }
-        public string Title { get; set; }
-        public int AuthorId { get; set; }
-        public string Genre { get; set; }
-        public string ISBN { get; set; }
-        public int Quantity { get; set; }
-        public DateOnly PublishedDate { get; set; }
-        public string AvailabilityStatus { get; set; }
+        public string? Title { get; set; }
+        public int? AuthorId { get; set; }
+        public string? Genre { get; set; }
+        public string? ISBN { get; set; }
+        public int? Quantity { get; set; }
+       // public DateOnly PublishedDate { get; set; }
+        public string? AvailabilityStatus { get; set; }
     }
 }

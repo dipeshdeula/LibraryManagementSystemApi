@@ -41,10 +41,10 @@ namespace Application.Handlers.BookBorrowHandler
 
             bookBorrow.BorrowId = request.BorrowId;
             bookBorrow.UserId = request.UserId;
-            bookBorrow.BookId = request.BookId;
+           // bookBorrow.BookId = request.BookId;
             bookBorrow.BorrowDate = request.BorrowDate;
             bookBorrow.ReturnDate = request.ReturnDate;
-            bookBorrow.Status = request.Status;
+          //  bookBorrow.Status = request.Status;
 
             await _bookBorrowService.UpdateBookBorrowAsync(bookBorrow);
             return bookBorrow.BorrowId;

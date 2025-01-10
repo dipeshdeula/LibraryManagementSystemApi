@@ -43,27 +43,30 @@ namespace LibraryManagementSystemApi.Controllers
         {
             try
             {
-                var entity = new BookBorrowEntity
-                {
-                    UserId = bookBorrow.UserId,
-                    BookId = bookBorrow.BookId,
-                    BorrowDate = bookBorrow.BorrowDate,
-                    ReturnDate = bookBorrow.ReturnDate,
-                    Status = bookBorrow.Status,
-                };
+                var command = new CreateBookBorrowCommand(
+                    bookBorrow.UserId,
+                  //  bookBorrow.BookId,
+                    bookBorrow.Barcode,
+                    bookBorrow.BorrowDate,
+                    bookBorrow.ReturnDate,
+                    bookBorrow.DueDate
+                   // bookBorrow.Status
+                    );
 
-                var result = await _bookBorrowService.CreateBookBorrowAsync(entity);
+                var result = await _mediator.Send(command);
                 return CreatedAtAction(nameof(GetBookBorrowById), new { id = result.BorrowId }, result);
-
-
+                
+         
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                _logger.LogError(ex, "An error occurred while creating the book borrow");
+                return StatusCode(StatusCodes.Status500InternalServerError, new {Message = ex.Message });
+                
             }
         }
 
-        [HttpPut("{id}")]
+       /* [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBookBorrow(int id, [FromForm] BookBorrowDto bookBorrow)
         {
             if (id != bookBorrow.BorrowId)
@@ -72,22 +75,24 @@ namespace LibraryManagementSystemApi.Controllers
             }
             try
             {
-                var bookBorrowReturn = await _mediator.Send<int>(new UpdateBookBorrowCommand(
+                var command = new UpdateBookBorrowCommand(
                     id,
                     bookBorrow.UserId,
-                    bookBorrow.BookId,
+                    bookBorrow.BookId ?? 0,
+                    bookBorrow.Barcode,
                     bookBorrow.BorrowDate,
                     bookBorrow.ReturnDate,
-                    bookBorrow.Status));
-
-                return Ok(bookBorrowReturn);
+                    bookBorrow.Status
+                    );
+                var result = await _mediator.Send(command);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occured while updating the borrowed book");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occured while updating the book borrow");
             }
-        }
+        }*/
 
         [HttpDelete("{id}")]
         public async Task<int> DeleteBookBorrow(int id)

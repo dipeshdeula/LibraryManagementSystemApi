@@ -63,7 +63,7 @@ namespace Infrastructure.Repositories
                 parameters.Add("@ISBN", books.ISBN);
                 parameters.Add("@Quantity", books.Quantity);
                 parameters.Add("@Genre", books.Genre);
-                parameters.Add("@PublishedDate", books.PublishedDate.ToDateTime(TimeOnly.MinValue));
+               // parameters.Add("@PublishedDate", books.PublishedDate.ToDateTime(TimeOnly.MinValue));
                 parameters.Add("@AvailabilityStatus", books.AvailabilityStatus);
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
@@ -87,7 +87,7 @@ namespace Infrastructure.Repositories
                 parameters.Add("@ISBN", books.ISBN);
                 parameters.Add("@Quantity", books.Quantity);
                 parameters.Add("@Genre", books.Genre);
-                parameters.Add("@PublishedDate", books.PublishedDate.ToDateTime(TimeOnly.MinValue));
+              //  parameters.Add("@PublishedDate", books.PublishedDate.ToDateTime(TimeOnly.MinValue));
                 parameters.Add("@AvailabilityStatus", books.AvailabilityStatus);
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
