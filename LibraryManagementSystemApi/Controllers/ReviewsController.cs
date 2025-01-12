@@ -1,6 +1,8 @@
 ﻿using Application.Commands;
+using Application.Commands.ReviewsCommand;
 using Application.DTOs;
 using Application.Queries;
+using Application.Queries.ReviewsQuery;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;

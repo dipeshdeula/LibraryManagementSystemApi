@@ -1,6 +1,8 @@
 ﻿using Application.Commands;
+using Application.Commands.Author;
 using Application.DTOs;
 using Application.Queries;
+using Application.Queries.AuthorsQuery;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;

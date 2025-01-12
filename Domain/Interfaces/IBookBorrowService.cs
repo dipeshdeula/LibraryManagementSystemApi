@@ -14,5 +14,8 @@ namespace Domain.Interfaces
         Task<BookBorrowEntity> CreateBookBorrowAsync(BookBorrowEntity bookBorrow);
         Task UpdateBookBorrowAsync(BookBorrowEntity bookBorrow);
         Task DeleteBookBorrowAsync(int id);
+       // Task<bool> IsBookCopyAvailable(int barcode);
+        Task<BookBorrowEntity> ReturnBookBorrowAsync(int userId, int barcode, DateTime? returnDate);
+        Task<string> MarkOverdueBooksAsync();
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Application.Commands;
+using Application.Commands.UsersCommand;
 using Application.DTOs;
 using Application.Queries;
+using Application.Queries.UsersQuery;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;

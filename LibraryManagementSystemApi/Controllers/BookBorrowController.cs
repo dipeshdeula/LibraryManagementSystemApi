@@ -1,6 +1,7 @@
 ﻿using Application.Commands.BookBorrow;
 using Application.DTOs;
 using Application.Queries;
+using Application.Queries.BookBorrowQuery;
 using Domain.Entities;
 using Domain.Interfaces;
 using MediatR;
@@ -66,7 +67,7 @@ namespace LibraryManagementSystemApi.Controllers
             }
         }
 
-       /* [HttpPut("{id}")]
+        /*[HttpPut("{id}")]
         public async Task<IActionResult> UpdateBookBorrow(int id, [FromForm] BookBorrowDto bookBorrow)
         {
             if (id != bookBorrow.BorrowId)
@@ -77,12 +78,11 @@ namespace LibraryManagementSystemApi.Controllers
             {
                 var command = new UpdateBookBorrowCommand(
                     id,
-                    bookBorrow.UserId,
-                    bookBorrow.BookId ?? 0,
+                    bookBorrow.UserId,                 
                     bookBorrow.Barcode,
                     bookBorrow.BorrowDate,
-                    bookBorrow.ReturnDate,
-                    bookBorrow.Status
+                    bookBorrow.ReturnDate
+                  
                     );
                 var result = await _mediator.Send(command);
                 return Ok(result);
@@ -98,6 +98,28 @@ namespace LibraryManagementSystemApi.Controllers
         public async Task<int> DeleteBookBorrow(int id)
         { 
             return await _mediator.Send(new DeleteBookBorrowCommand { Id = id });
+        }
+
+
+        [HttpPost("return")]
+        public async Task<IActionResult> ReturnBookBorrow([FromForm] ReturnBookBorrowDto returnBookBorrow)
+        {
+            try
+            {
+                var command = new ReturnBookBorrowCommand(
+                    returnBookBorrow.UserId,
+                    returnBookBorrow.Barcode,
+                    returnBookBorrow.ReturnDate ?? DateTime.Now
+                );
+
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while returning the book borrow");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = ex.Message });
+            }
         }
     }
 }

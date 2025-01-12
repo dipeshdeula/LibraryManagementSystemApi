@@ -14,5 +14,6 @@ namespace Domain.Interfaces
         Task<string> AddBooksAsync(BooksEntity books);
         Task<string> UpdateBooksAsync(BooksEntity books);
         Task<string> DeleteBooksAsync(int id);
+       
     }
 }

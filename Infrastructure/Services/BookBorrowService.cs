@@ -16,7 +16,7 @@ namespace Infrastructure.Services
         private readonly IBookBorrowRepository _bookBorrowRepository;
 
         public BookBorrowService(IBookBorrowRepository bookBorrowRepository)
-        { 
+        {
             _bookBorrowRepository = bookBorrowRepository;
         }
 
@@ -25,16 +25,13 @@ namespace Infrastructure.Services
             return await _bookBorrowRepository.GetAllBookBorrowAsync();
         }
 
-        public async Task <BookBorrowEntity> GetBookBorrowByIdAsync(int id)
+        public async Task<BookBorrowEntity> GetBookBorrowByIdAsync(int id)
         {
             return await _bookBorrowRepository.GetBookBorrowAsync(id);
-            
         }
-
 
         public async Task<BookBorrowEntity> CreateBookBorrowAsync(BookBorrowEntity bookBorrow)
         {
-
             //validate the borrow data
             if (bookBorrow.BorrowDate > DateTime.Now)
                 throw new ArgumentException("Borrow date cannot be in the future");
@@ -44,17 +41,14 @@ namespace Infrastructure.Services
             if (!isAvailable)
                 throw new InvalidOperationException("This book copy is not available for borrowing.");
 
-            
-
             //fetch existing borrow records
             var existingBorrows = await _bookBorrowRepository.GetAllBookBorrowAsync();
 
             //check if the book is already borrowed and not returned
-            bool isBookBorrowed = existingBorrows.Any(b => b.Barcode == bookBorrow.Barcode && b.Status == "Borrowed" || b.Status == "Overdue");
+            bool isBookBorrowed = existingBorrows.Any(b => b.Barcode == bookBorrow.Barcode && (b.Status == "Borrowed" || b.Status == "Overdue"));
 
             if (isBookBorrowed)
                 throw new InvalidOperationException("The book is already borrowed by another user.");
-
 
             //Ensure the same user doesn't borrow the same book again without returning it
             bool isBookBorrowedBySameUser = existingBorrows.Any(b =>
@@ -74,9 +68,7 @@ namespace Infrastructure.Services
             //check repository response
             if (response.Contains("failed", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(response);
-            
 
-            
             return bookBorrow;
         }
 
@@ -94,19 +86,42 @@ namespace Infrastructure.Services
             bookBorrow.Status = bookBorrow.ReturnDate.HasValue ? "Returned" : "Borrowed";
 
             //update the record via the repository
-          var response =  await _bookBorrowRepository.UpdateBookBorrowAsync(bookBorrow);
+            var response = await _bookBorrowRepository.UpdateBookBorrowAsync(bookBorrow);
 
             if (response.Contains("failed"))
                 throw new InvalidOperationException("failed to update the book borrow record.");
         }
-
 
         public async Task DeleteBookBorrowAsync(int id)
         {
             await _bookBorrowRepository.DeleteBookBorrowAsync(id);
         }
 
-      
-       
+        public async Task<BookBorrowEntity> ReturnBookBorrowAsync(int userId, int barcode, DateTime? returnDate)
+        {
+            //validate the return date
+            if (returnDate.HasValue && returnDate > DateTime.Now)
+                throw new ArgumentException("Return date cannot be in the future.");
+
+            //call repository to update the borrow record
+            var response = await _bookBorrowRepository.ReturnBookBorrowAsync(userId, barcode, returnDate);
+
+            //check repository response
+            if (response == null || response.Contains("failed", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(response ?? "Operation failed");
+
+
+            // Assuming you need to fetch the updated BookBorrowEntity after returning the book
+            var updatedBookBorrow = await _bookBorrowRepository.GetBookBorrowAsync(userId);
+            if (updatedBookBorrow == null)
+                throw new InvalidOperationException("Failed to retrieve the updated book borrow record.");
+
+            return updatedBookBorrow;
+        }
+
+        public async Task<string> MarkOverdueBooksAsync()
+        {
+            return await _bookBorrowRepository.MarkOverdueBooksAsync();
+        }
     }
 }

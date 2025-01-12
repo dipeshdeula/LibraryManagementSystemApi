@@ -3,15 +3,10 @@ using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-   public class BookBorrowRepository : IBookBorrowRepository
+    public class BookBorrowRepository : IBookBorrowRepository
     {
         private readonly IConfiguration configuration;
         private readonly string _connectionString;
@@ -22,7 +17,7 @@ namespace Infrastructure.Repositories
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task<IEnumerable<BookBorrowEntity>> GetAllBookBorrowAsync()
+        public async Task<IEnumerable<BookBorrowEntity?>> GetAllBookBorrowAsync()
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -32,7 +27,7 @@ namespace Infrastructure.Repositories
                 return await connection.QueryAsync<BookBorrowEntity>(
                     "[SP_ManageBookBorrow]",
                     parameters,
-                    commandType:System.Data.CommandType.StoredProcedure);
+                    commandType: System.Data.CommandType.StoredProcedure);
             }
         }
 
@@ -58,12 +53,12 @@ namespace Infrastructure.Repositories
                 var parameters = new DynamicParameters();
                 parameters.Add("@flag", "BO");
                 //parameters.Add("@BorrowId", bookBorrow.BorrowId);
-                parameters.Add("@UserId",bookBorrow.UserId);
-               // parameters.Add("@BookId",bookBorrow.BookId);
+                parameters.Add("@UserId", bookBorrow.UserId);
+                // parameters.Add("@BookId",bookBorrow.BookId);
                 parameters.Add("@Barcode", bookBorrow.Barcode);
                 parameters.Add("@BorrowDate", bookBorrow.BorrowDate);
-               // parameters.Add("@ReturnDate", bookBorrow.ReturnDate);
-               // parameters.Add("@DueDate", bookBorrow.DueDate);
+                // parameters.Add("@ReturnDate", bookBorrow.ReturnDate);
+                // parameters.Add("@DueDate", bookBorrow.DueDate);
                 //parameters.Add("@Status", bookBorrow.Status);
 
                 try
@@ -102,11 +97,11 @@ namespace Infrastructure.Repositories
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
                     "[SP_ManageBookBorrow]",
                     parameters,
-                    commandType:System.Data.CommandType.StoredProcedure);
+                    commandType: System.Data.CommandType.StoredProcedure);
 
                 return result?.Msg ?? "Operation failed";
             }
-        
+
         }
 
         public async Task<string> MarkOverdueBooksAsync()
@@ -123,9 +118,9 @@ namespace Infrastructure.Repositories
 
                 return result?.Msg ?? "Operation failed";
             }
-        
+
         }
-            
+
         public async Task<string> UpdateBookBorrowAsync(BookBorrowEntity bookBorrow)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -134,10 +129,10 @@ namespace Infrastructure.Repositories
                 parameters.Add("@flag", "U");
                 parameters.Add("@BorrowId", bookBorrow.BorrowId);
                 parameters.Add("@UserId", bookBorrow.UserId);
-              //  parameters.Add("@BookId", bookBorrow.BookId);
+                //  parameters.Add("@BookId", bookBorrow.BookId);
                 parameters.Add("@BorrowDate", bookBorrow.BorrowDate);
                 parameters.Add("@ReturnDate", bookBorrow.ReturnDate);
-              //  parameters.Add("@Status", bookBorrow.Status);
+                //  parameters.Add("@Status", bookBorrow.Status);
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
                     "[SP_ManageBookBorrow]",
@@ -178,9 +173,10 @@ namespace Infrastructure.Repositories
                     parameters,
                     commandType: System.Data.CommandType.StoredProcedure
                     );
-                return result != null ;
+                return result != null;
             }
         }
-        
+
+
     }
 }
