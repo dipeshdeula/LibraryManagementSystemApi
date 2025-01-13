@@ -24,12 +24,14 @@ namespace Infrastructure
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IReviewService, ReviewService>();
             services.AddTransient<IBookBorrowService, BookBorrowService>();
+            services.AddTransient<IBookCopyService, BookCopyService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IReviewRepository, ReviewRepository>();
             services.AddScoped<IBookBorrowRepository, BookBorrowRepository>();
+            services.AddScoped<IBookCopyRepository, BookCopyRepository>();
 
             services.AddScoped<JwtTokenHelper>();
 
